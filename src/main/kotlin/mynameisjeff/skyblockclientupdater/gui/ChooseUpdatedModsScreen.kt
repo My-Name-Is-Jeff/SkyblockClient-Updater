@@ -76,7 +76,7 @@ class ChooseUpdatedModsScreen : GuiScreen() {
 
         fun updateScreen() {
             for (e in entries) {
-                e.toggleButton.displayString = if (e.needsUpdate) "Update" else "Ignore"
+                e.toggleButton.displayString = if (e.needsUpdate) "Updating" else "Ignoring"
             }
         }
 
@@ -107,7 +107,7 @@ class ChooseUpdatedModsScreen : GuiScreen() {
             ks.toggleButton.visible = visible
             if (visible) {
                 ks.toggleButton.yPosition = slotTop
-                ks.toggleButton.displayString = if (ks.needsUpdate) "Update" else "Ignore"
+                ks.toggleButton.displayString = if (ks.needsUpdate) "Updating" else "Ignoring"
 
                 mc.fontRendererObj.drawString(
                     "§c${ks.oldFile} §r§l➜ §a${ks.newFile}",
