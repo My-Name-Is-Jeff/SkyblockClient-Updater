@@ -93,7 +93,7 @@ object UpdateChecker {
     }
 
     fun getLatestMods() {
-        val mods = JsonParser().parse(WebUtils.fetchResponse("https://rawcdn.githack.com/nacrt/SkyblockClient-REPO/fc0ff669d34e609f59327efb1f9dbeb2e6dd337b/files/mods.json")).asJsonArray
+        val mods = JsonParser().parse(WebUtils.fetchResponse("https://rawcdn.githack.com/nacrt/SkyblockClient-REPO/main/files/mods.json")).asJsonArray
         for (m in mods) {
             val mod = m.asJsonObject
             val name = mod.get("file").asString
