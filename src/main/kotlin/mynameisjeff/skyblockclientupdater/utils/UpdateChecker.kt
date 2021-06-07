@@ -46,7 +46,7 @@ object UpdateChecker {
 
     fun getLatestCommitID() {
         val commits = JsonParser().parse(WebUtils.fetchResponse("https://api.github.com/repos/nacrt/SkyblockClient-REPO/commits")).asJsonArray
-        latestCommitID = commits[0].asJsonObject.get("sha").asString
+        latestCommitID = commits[0].asJsonObject["sha"].asString
     }
 
     fun deleteFileOnShutdown(oldFile: File, newFile: String) {
