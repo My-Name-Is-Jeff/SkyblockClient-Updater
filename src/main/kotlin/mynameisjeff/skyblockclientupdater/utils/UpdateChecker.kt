@@ -28,6 +28,8 @@ object UpdateChecker {
 
     val needsDelete = HashSet<Pair<File, String>>()
 
+    val latestCommitID: String
+
     private var addedShutdownHook = false
 
     lateinit var deleteTask: File
@@ -37,8 +39,14 @@ object UpdateChecker {
         if (event.gui !is GuiMainMenu) return
         if (needsUpdate.isEmpty()) return
 
-        event.isCanceled = true
-        SkyClientUpdater.displayScreen = PromptUpdateScreen()
+        TickTask(2) {
+            SkyClientUpdater.displayScreen = PromptUpdateScreen()
+        }
+    }
+
+    fun getLatestCommitID() {
+        val commits = JsonParser().parse(WebUtils.fetchResponse("https://api.github.com/repos/nacrt/SkyblockClient-REPO/commits")).asJsonArray
+        latestCommitID = commits[0].asJsonObject.get("sha").asString
     }
 
     fun deleteFileOnShutdown(oldFile: File, newFile: String) {
@@ -93,7 +101,7 @@ object UpdateChecker {
     }
 
     fun getLatestMods() {
-        val mods = JsonParser().parse(WebUtils.fetchResponse("https://cdn.jsdelivr.net/gh/nacrt/SkyblockClient-REPO/files/mods.json")).asJsonArray
+        val mods = JsonParser().parse(WebUtils.fetchResponse("https://rawcdn.githack.com/nacrt/SkyblockClient-REPO/$latestCommitID/files/mods.json")).asJsonArray
         for (m in mods) {
             val mod = m.asJsonObject
             val name = mod.get("file").asString
