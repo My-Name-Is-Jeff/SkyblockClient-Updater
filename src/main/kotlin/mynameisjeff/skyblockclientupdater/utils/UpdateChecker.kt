@@ -28,7 +28,7 @@ object UpdateChecker {
 
     val needsDelete = HashSet<Pair<File, String>>()
 
-    val latestCommitID: String
+    var latestCommitID: String = "main"
 
     private var addedShutdownHook = false
 
@@ -45,8 +45,15 @@ object UpdateChecker {
     }
 
     fun getLatestCommitID() {
-        val commits = JsonParser().parse(WebUtils.fetchResponse("https://api.github.com/repos/nacrt/SkyblockClient-REPO/commits")).asJsonArray
-        latestCommitID = commits[0].asJsonObject["sha"].asString
+        try {
+            val commits = JsonParser().parse(WebUtils.fetchResponse("https://api.github.com/repos/nacrt/SkyblockClient-REPO/commits")).asJsonArray
+            latestCommitID = commits[0].asJsonObject["sha"].asString
+        }
+        catch (ex: Throwable) {
+            println("Failed to load latest commit id")
+            ex.printStackTrace()
+            latestCommitID = "main"
+        }
     }
 
     fun deleteFileOnShutdown(oldFile: File, newFile: String) {
