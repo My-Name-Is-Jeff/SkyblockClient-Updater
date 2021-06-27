@@ -1,6 +1,7 @@
 package mynameisjeff.skyblockclientupdater.utils
 
 import com.google.gson.JsonParser
+import com.google.gson.JsonArray 
 import mynameisjeff.skyblockclientupdater.SkyClientUpdater
 import mynameisjeff.skyblockclientupdater.SkyClientUpdater.mc
 import mynameisjeff.skyblockclientupdater.gui.PromptUpdateScreen
@@ -108,7 +109,15 @@ object UpdateChecker {
     }
 
     fun getLatestMods() {
-        val mods = JsonParser().parse(WebUtils.fetchResponse("https://rawcdn.githack.com/nacrt/SkyblockClient-REPO/$latestCommitID/files/mods.json")).asJsonArray
+        var mods = JsonArray()
+        try {
+            mods = JsonParser().parse(WebUtils.fetchResponse("https://rawcdn.githack.com/nacrt/SkyblockClient-REPO/$latestCommitID/files/mods.json")).asJsonArray
+        }
+        catch (ex: Throwable) {
+            println("Failed to load mod files")
+            ex.printStackTrace()
+        }
+        
         for (m in mods) {
             val mod = m.asJsonObject
             val name = mod.get("file").asString
