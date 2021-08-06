@@ -2,6 +2,7 @@ package mynameisjeff.skyblockclientupdater.utils
 
 import com.google.gson.JsonParser
 import com.google.gson.JsonArray 
+import mynameisjeff.skyblockclientupdater.utils.ReceivedAndExpected
 import mynameisjeff.skyblockclientupdater.SkyClientUpdater
 import mynameisjeff.skyblockclientupdater.SkyClientUpdater.mc
 import mynameisjeff.skyblockclientupdater.gui.PromptUpdateScreen
@@ -133,6 +134,8 @@ object UpdateChecker {
             for (modEntry in latestMods.keys) {
                 val distance = getLevenshteinDistance(fileName, modEntry)
                 if (distance !in 1..6) continue
+                val er = ExpectedAndReceived(fileName, modEntry)
+                if (!er.needsUpdate(distance)) continue
                 needsUpdate.add(Triple(modFile, modEntry, latestMods[modEntry]!!))
                 continue@loopMods
             }
