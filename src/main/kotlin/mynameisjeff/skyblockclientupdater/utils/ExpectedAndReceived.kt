@@ -13,8 +13,8 @@ object ExpectedAndReceived {
     fun needsUpdate(distance: Integer): Boolean {
         val exemptChars = charArrayOf('_', '-', '+', ' ', '.', '!')
         val numbers = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-        var expectedChars = charArrayOf()
-        var receivedChars = charArrayOf()
+        var expectedChars =  ArrayList<Char?>()
+        var receivedChars =  ArrayList<Char?>()
 
         /*
         for index in range(0, max(len(stra), len(strb))):
@@ -39,10 +39,10 @@ object ExpectedAndReceived {
         for (index in 0..Math.max(expected.length(), received.length())) {
             if (index < Math.min(expected.length(), received.length())) {
                 if (!expected[index].equals(received[index])) {
-                    expectedChars = charArrayOf(expectedChars.all, expected[index])
-                    receivedChars = charArrayOf(receivedChars.all, received[index])
-                    //expectedChars.add(expected[index]))
-                    //receivedChars.add(received[index]))
+                    //expectedChars = charArrayOf(expectedChars.all, expected[index])
+                    //receivedChars = charArrayOf(receivedChars.all, received[index])
+                    expectedChars.add(expected[index]))
+                    receivedChars.add(received[index]))
                 }
             }
             else {
@@ -56,10 +56,10 @@ object ExpectedAndReceived {
                     r = received[index]
                 }
 
-                expectedChars = charArrayOf(expectedChars.all, r)
-                receivedChars = charArrayOf(receivedChars.all, e)
-                //receivedChars.add(r)
-                //expectedChars.add(e)
+                //expectedChars = charArrayOf(expectedChars.all, r)
+                //receivedChars = charArrayOf(receivedChars.all, e)
+                receivedChars.add(r)
+                expectedChars.add(e)
             }
         }
 
@@ -68,7 +68,7 @@ object ExpectedAndReceived {
             var ech: Char = expectedChars.get(0) // ArrayList<Char>()
             var rch: Char = receivedChars.get(0) // ArrayList<Char>()
             
-            if (ech in exemptChars && rch in exemptChars) {
+            if (ech.isDigit() && rch.isDigit()) {
                 return false
             }
             else {
