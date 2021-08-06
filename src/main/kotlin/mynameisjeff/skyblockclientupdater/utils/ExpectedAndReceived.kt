@@ -1,9 +1,9 @@
 package mynameisjeff.skyblockclientupdater.utils
 import java.lang.Math;
 
-object ExpectedAndReceived {
-    val expected: String? = null // string a
-    val received: String? = null // string b
+class ExpectedAndReceived {
+    var expected: String = "" // string a
+    var received: String = "" // string b
 
     constructor(expected: String, received: String) {
         this.expected = expected
@@ -36,20 +36,20 @@ object ExpectedAndReceived {
                 print()
         */
 
-        for (index in 0..Math.max(expected.length(), received.length())) {
-            if (index < Math.min(expected.length(), received.length())) {
+        for (index in 0..Math.max(expected.length, received.length)) {
+            if (index < Math.min(expected.length, received.length)) {
                 if (!expected[index].equals(received[index])) {
                     //expectedChars = charArrayOf(expectedChars.all, expected[index])
                     //receivedChars = charArrayOf(receivedChars.all, received[index])
-                    expectedChars.add(expected[index]))
-                    receivedChars.add(received[index]))
+                    expectedChars.add(expected[index])
+                    receivedChars.add(received[index])
                 }
             }
             else {
                 var e = null
                 var r = null
                 
-                if (expected.length() > received.length()) {
+                if (expected.length > received.length) {
                     e = expected[index]
                 }
                 else {
