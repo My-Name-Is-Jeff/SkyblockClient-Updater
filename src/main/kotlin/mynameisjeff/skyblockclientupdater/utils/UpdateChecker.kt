@@ -163,8 +163,8 @@ object UpdateChecker {
 
         val e = expected.toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
         val r = received.toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
-        val distance = StringUtils.getLevenshteinDistance(expected, received)
-        if (distance !in 1..6) return false
+        val distance = StringUtils.getLevenshteinDistance(e, r)
+        if (distance !in 1..7) return false
 
         val ec = e.filterIndexed { index, c -> c != r.getOrNull(index) }
         val rc = r.filterIndexed { index, c -> c != e.getOrNull(index) }
