@@ -161,8 +161,9 @@ object UpdateChecker {
         val exempt = charArrayOf('_', '-', '+', ' ', '.')
         val whitespace = charArrayOf('_', ' ', '.', '+')
 
-        val e = expected.toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
-        val r = received.toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
+        val e = expected.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
+        val r = received.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
+        if (e.joinToString().take(4) != r.joinToString().take(4)) return false
         val distance = StringUtils.getLevenshteinDistance(e.joinToString(), r.joinToString())
         if (distance !in 1..7) return false
 
