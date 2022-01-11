@@ -19,6 +19,12 @@ import java.io.IOException
 import java.net.URL
 import kotlin.concurrent.thread
 
+import java.util.jar.JarFile
+import java.io.StringWriter
+import org.apache.commons.io.IOUtils
+import com.google.gson.*
+
+
 /**
  * Taken from Skytils under GNU Affero General Public License v3.0
  * Modified
@@ -26,8 +32,8 @@ import kotlin.concurrent.thread
  */
 object UpdateChecker {
 
-    val installedMods: ArrayList<File> = arrayListOf()
-    val latestMods = HashMap<String, String>()
+    val installedMods: ArrayList<ModFile> = arrayListOf()
+    val latestMods = HashMap<ModFile, String>()
     val needsUpdate = HashSet<Triple<File, String, String>>()
 
     val needsDelete = HashSet<Pair<File, String>>()
@@ -122,7 +128,40 @@ object UpdateChecker {
             val versionModFiles = subModDir.listFiles()
             if (versionModFiles != null) modFiles.addAll(versionModFiles)
         }
-        installedMods.addAll(modFiles.filter { it.isFile && it.extension == "jar" })
+
+
+        var mods: ArrayList<File> = arrayListOf()
+        mods.addAll(modFiles.filter { it.isFile && it.extension == "jar" })
+
+        // populate mod with their respective forge mod id
+        for (mod in mods) {
+            // extract forge mod id
+            var id: String? = null
+            var jar = JarFile(mod)
+            var entry = jar.entries()
+
+            while (entry.hasMoreElements()) {
+
+                var element = entry.nextElement();
+
+                if (element.getName().equals("mcmod.info")) {
+                    try {
+                        var writer = StringWriter();
+                        IOUtils.copy(jar.getInputStream(element), writer, "UTF-8");
+                        // replaces newlines with spaces
+                        var str = writer.toString().replace('\n', ' ');
+                        // gets the mod id - [{"modid":"abc"}]
+                        id = JsonParser().parse(str).asJsonArray.get(0).asJsonObject.get("modid").asString
+                    }
+                    catch(e: Exception) {
+                        println(e)
+                    }
+                    break
+                }
+            }
+
+            installedMods.add(ModFile(mod, id))
+        }
     }
 
     fun getLatestMods() {
@@ -134,38 +173,100 @@ object UpdateChecker {
             println("Failed to load mod files")
             ex.printStackTrace()
         }
-        
+
         for (m in mods) {
             val mod = m.asJsonObject
             val name = mod.get("file").asString
             if (name == "no") continue
             val url = if (mod.has("url")) mod.get("url").asString else "https://github.com/nacrt/SkyblockClient-REPO/raw/main/files/mods/$name"
-            latestMods[name] = url
+            val id = if (mod.has("modid")) mod.get("modid").asString else null
+            latestMods[ModFile(File(name), id)] = url
         }
     }
 
     fun getUpdateCandidates() {
-        val needsChecking = installedMods.filter { !latestMods.keys.contains(it.name) }
-        val allowedRemoteChecks = latestMods.keys.filter { installedMods.none { m -> m.name == it } }
-        loopMods@ for (modFile in needsChecking) {
-            val fileName = modFile.name
-            for (modEntry in allowedRemoteChecks) {
-                if (!checkMatch(modEntry, fileName)) continue
-                needsUpdate.add(Triple(modFile, modEntry, latestMods[modEntry]!!))
+
+        // step 1: loop over known mod ids
+        loopMods@ for (modFile in installedMods) {
+            val fileName = modFile.file.name
+            for (modEntry in latestMods.keys) {
+                var tri = Triple(modFile.file, modEntry.file.name, latestMods[modEntry]!!)
+
+                if (!(modFile.modid.equals(modEntry.modid) /*&& checkNeedsUpdate(modEntry.file.name, fileName)*/)) continue
+                println("Mod Match found in Loop 1: ".plus(modFile.modid).plus("&").plus(modEntry.modid).plus(" being ").plus(modFile.file.name).plus("&").plus(modEntry.file.name))
+                needsUpdate.add(tri)
+                continue@loopMods
+            }
+        }
+
+        // step 2: loop over the remaining unknown mods
+        loopMods@ for (modFile in installedMods) {
+            val fileName = modFile.file.name
+            for (modEntry in latestMods.keys) {
+                var tri = Triple(modFile.file, modEntry.file.name, latestMods[modEntry]!!)
+
+                if (needsUpdate.contains(tri)) continue
+                if (!(checkMatch(modEntry.file.name, fileName) /*&& checkNeedsUpdate(modEntry.file.name, fileName)*/)) continue
+                println("Mod Match found in Loop 2: ".plus(modFile.modid).plus("&").plus(modEntry.modid).plus(" being ").plus(modFile.file.name).plus("&").plus(modEntry.file.name))
+                needsUpdate.add(tri)
                 continue@loopMods
             }
         }
     }
 
+    /* Depricated
+    fun getUpdateCandidates() {
+        val x = installedMods.filter { !latestMods.keys.contains(it.file.name) }
+        val allowedRemoteChecks = latestMods.keys.filter { installedMods.none { m -> m.file.name == it } }
+
+        // step 1: loop over known mod ids
+        loopMods@ for (modFile in needsChecking) {
+            val fileName = modFile.file.name
+            for (modEntry in allowedRemoteChecks) {
+                var tri = Triple(modFile.file, modEntry, latestMods[modEntry]!!)
+
+                if (!(checkMatch(modEntry, fileName) && checkNeedsUpdate(modEntry, fileName))) continue
+                needsUpdate.add(tri)
+                continue@loopMods
+            }
+        }
+
+        // step 2: loop over the remaining unknown mods
+        loopMods@ for (modFile in needsChecking) {
+            val fileName = modFile.file.name
+            for (modEntry in allowedRemoteChecks) {
+                var tri = Triple(modFile.file, modEntry, latestMods[modEntry]!!)
+
+                if (needsUpdate.contains(tri)) continue
+                if (!(checkMatch(modEntry, fileName) && checkNeedsUpdate(modEntry, fileName))) continue
+                needsUpdate.add(tri)
+                continue@loopMods
+            }
+        }
+    }
+     */
+
     private fun checkMatch(expected: String, received: String): Boolean {
+
+        val exempt = charArrayOf('_', '-', '+', ' ', '.')
+
+        val e = expected.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
+        val r = received.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
+
+        if (e.joinToString().take(4) != r.joinToString().take(4)) return false
+        val distance = StringUtils.getLevenshteinDistance(e.joinToString(), r.joinToString())
+        if (distance !in 1..7) return false
+
+        return true
+    }
+
+    private fun checkNeedsUpdate(expected: String, received: String): Boolean {
+
         val exempt = charArrayOf('_', '-', '+', ' ', '.')
         val whitespace = charArrayOf('_', ' ', '.', '+')
 
         val e = expected.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
         val r = received.lowercase().toCharArray().dropWhile { it == '!' }.filter { !exempt.contains(it) }
-        if (e.joinToString().take(4) != r.joinToString().take(4)) return false
-        val distance = StringUtils.getLevenshteinDistance(e.joinToString(), r.joinToString())
-        if (distance !in 1..7) return false
 
         val ec = e.filterIndexed { index, c -> c != r.getOrNull(index) }
         val rc = r.filterIndexed { index, c -> c != e.getOrNull(index) }
@@ -173,7 +274,7 @@ object UpdateChecker {
         if (listOf(ec, rc).flatten().none { !it.isDigit() && !whitespace.contains(it) }) {
             return (ec.firstOrNull { it.isDigit() }?.digitToInt() ?: 0) > (rc.firstOrNull { it.isDigit() }?.digitToInt() ?: 0)
         }
-        return true
+        return false
     }
 
     fun downloadHelperTask() {
