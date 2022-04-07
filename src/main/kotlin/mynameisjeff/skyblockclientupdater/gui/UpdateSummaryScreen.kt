@@ -1,6 +1,7 @@
 package mynameisjeff.skyblockclientupdater.gui
 
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiMainMenu
 import net.minecraft.client.gui.GuiScreen
 import java.awt.Color
 import java.io.File
