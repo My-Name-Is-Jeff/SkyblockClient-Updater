@@ -8,7 +8,8 @@ import java.io.File
 class UpdateSummaryScreen(val downloadedMods: ArrayList<File>, val failedDownloadingMods: ArrayList<File>) : GuiScreen() {
 
     override fun initGui() {
-        buttonList.add(GuiButton(0, width / 2 - 100, height - 75, 200, 20, "Quit Game"))
+        buttonList.add(GuiButton(0, width / 2 - 100, height - 75, 50, 20, "Quit"))
+        buttonList.add(GuiButton(1, width / 2 - 50, height - 75, 150, 20, "Continue to MC"))
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -26,6 +27,10 @@ class UpdateSummaryScreen(val downloadedMods: ArrayList<File>, val failedDownloa
     }
 
     override fun actionPerformed(button: GuiButton) {
-        mc.shutdown()
+        if (button.id == 0) {
+            mc.shutdown()
+        } else if (button.id == 1) {
+            mc.displayGuiScreen(GuiMainMenu())
+        }
     }
 }
